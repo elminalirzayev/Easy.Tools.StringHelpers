@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+	  <PackageId>Easy.Tools.StringHelpers</PackageId>
+	  <Version>1.0.0</Version>
+	  <Authors>Elmin Alirzayev</Authors>
+	  <Company>Easy Code Tools</Company>
+	  <Description>This package provides utility extension methods for advanced string manipulation in .NET applications.</Description>
+	  <PackageTags>string extensions helpers text manipulation utility dotnet</PackageTags>
+	  <RepositoryUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</RepositoryUrl>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  <PackageProjectUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</PackageProjectUrl>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+
+	  
+  </PropertyGroup>
+	<ItemGroup>
+		<None Include="README.md">
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="DOCUMENTATION.md">
+			<Pack>true</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+</Project>
