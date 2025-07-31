@@ -198,3 +198,7 @@ using Easy.Tools.StringHelpers.Extensions;
 ## License
 
 MIT
+
+---
+
+© 2025 Elmin Alirzayev / Easy Code Tools
