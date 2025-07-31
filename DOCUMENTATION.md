@@ -201,4 +201,5 @@ MIT
 
 ---
 
-© 2025 Elmin Alirzayev / Easy Code Tools
+© 2025 Elmin Alirzayev / Easy Code Tools / alirzayev.com
+```
