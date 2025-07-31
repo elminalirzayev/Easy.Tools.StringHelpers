@@ -130,5 +130,4 @@ namespace Easy.Tools.StringHelpers.Extensions
     }
 }
 
-    }
-}
+
