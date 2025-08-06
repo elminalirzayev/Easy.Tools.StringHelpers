@@ -1,24 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<OutputType>Library</OutputType>
+		<!--<TargetFramework>net8.0</TargetFramework>-->
+		<TargetFrameworks>net8.0;net6.0;net7.0;netstandard2.0;net48;net47</TargetFrameworks>
+		<LangVersion>10.0</LangVersion>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-	  <PackageId>Easy.Tools.StringHelpers</PackageId>
-	  <Version>1.0.1</Version>
-	  <Authors>Elmin Alirzayev</Authors>
-	  <Company>Easy Code Tools</Company>
-	  <Description>This package provides utility extension methods for advanced string manipulation in .NET applications.</Description>
-	  <PackageTags>string extensions helpers text manipulation utility dotnet</PackageTags>
-	  <RepositoryUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</RepositoryUrl>
-	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
-	  <PackageProjectUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</PackageProjectUrl>
-	  <PackageReadmeFile>README.md</PackageReadmeFile>
+		<Title>Easy.Tools.StringHelpers</Title>
+		<PackageId>Easy.Tools.StringHelpers</PackageId>		
+		<Version>1.0.2</Version>
+		<Authors>Elmin Alirzayev</Authors>
+		<Company>Easy Code Tools</Company>
+		<Description>This package provides utility extension methods for advanced string manipulation in .NET applications.</Description>
+		<PackageTags>string extensions helpers text manipulation utility dotnet</PackageTags>
+		<RepositoryUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</RepositoryUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/elminalirzayev/Easy.Tools.StringHelpers</PackageProjectUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 
-	  
-  </PropertyGroup>
+
+	</PropertyGroup>
 	<ItemGroup>
 		<None Include="README.md">
 			<Pack>true</Pack>
