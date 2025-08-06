@@ -11,7 +11,7 @@
 
 		<Title>Easy.Tools.StringHelpers</Title>
 		<PackageId>Easy.Tools.StringHelpers</PackageId>		
-		<Version>1.0.2</Version>
+		<Version>1.0.3</Version>
 		<Authors>Elmin Alirzayev</Authors>
 		<Company>Easy Code Tools</Company>
 		<Description>This package provides utility extension methods for advanced string manipulation in .NET applications.</Description>
