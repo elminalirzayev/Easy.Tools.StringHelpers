@@ -2,16 +2,17 @@
 
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
-		<!--<TargetFramework>net8.0</TargetFramework>-->
-		<TargetFrameworks>net8.0;net6.0;net7.0;netstandard2.0;net48;net47</TargetFrameworks>
+		<!--<TargetFramework>netstandard2.1</TargetFramework>-->
+		<TargetFrameworks>net8.0;net7.0;net6.0;netstandard2.0;netstandard2.1;net48;net47</TargetFrameworks>
+
 		<LangVersion>10.0</LangVersion>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>	
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
 		<Title>Easy.Tools.StringHelpers</Title>
 		<PackageId>Easy.Tools.StringHelpers</PackageId>		
-		<Version>1.0.3</Version>
+		<Version>1.0.4</Version>
 		<Authors>Elmin Alirzayev</Authors>
 		<Company>Easy Code Tools</Company>
 		<Description>This package provides utility extension methods for advanced string manipulation in .NET applications.</Description>
@@ -34,6 +35,9 @@
 			<Pack>true</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+	</ItemGroup>
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' Or '$(TargetFramework)' == 'net7.0' Or '$(TargetFramework)' == 'net6.0' ">
+	  <PackageReference Include="System.Text.Json" Version="9.0.8" />
 	</ItemGroup>
 
 </Project>

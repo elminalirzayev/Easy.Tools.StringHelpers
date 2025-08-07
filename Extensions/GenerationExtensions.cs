@@ -73,7 +73,12 @@ namespace Easy.Tools.StringHelpers.Extensions
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
 
+#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             var words = input.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+#else
+            var words = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+#endif
+
             var initials = string.Concat(words.Select(w => char.ToUpperInvariant(w[0])));
             return initials;
         }

@@ -1,8 +1,10 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
+#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER 
+using System.Text.Json;
+#endif
 
 namespace Easy.Tools.StringHelpers.Extensions
 {
@@ -88,6 +90,8 @@ namespace Easy.Tools.StringHelpers.Extensions
         /// <summary>
         /// Validates if the input is a valid JSON string.
         /// </summary>
+#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER
+
         /// <param name="input">The input string to validate.</param>
         /// <returns>True if the string is a valid JSON; otherwise, false.</returns>
         public static bool IsValidJson(this string input)
@@ -102,6 +106,14 @@ namespace Easy.Tools.StringHelpers.Extensions
                 return false;
             }
         }
+#else
+        /// <param name="input">The input string to validate.</param>
+        /// <returns>Always returns false; JSON validation not supported on this framework.</returns>
+        public static bool IsValidJson(this string input)
+        {
+            return false;
+        }
+#endif
 
         /// <summary>
         /// Validates if the input is a valid XML string.
@@ -131,8 +143,24 @@ namespace Easy.Tools.StringHelpers.Extensions
         {
             if (string.IsNullOrWhiteSpace(input)) return false;
 
-            Span<byte> buffer = new Span<byte>(new byte[input.Length]);
-            return Convert.TryFromBase64String(input, buffer, out _);
+#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER 
+            Span<byte> buffer = new byte[input.Length];
+            return System.Convert.TryFromBase64String(input, buffer, out _);
+#else
+            input = input.Trim();
+            if (input.Length % 4 != 0)
+                return false;
+            try
+            {
+                System.Convert.FromBase64String(input);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+#endif
+
         }
 
         /// <summary>
@@ -202,6 +230,8 @@ namespace Easy.Tools.StringHelpers.Extensions
         /// <param name="minLength">Minimum length of the password.</param>
         /// <param name="requireSpecialChar">Whether to require at least one special character.</param>
         /// <param name="requireDigit">Whether to require at least one digit.</param>
+        /// <param name="requireUppercase">Whether to require at least one uppercase letter.</param>
+        /// <param name="requireLowercase">Whether to require at least one lowercase letter.</param>
         /// <param name="requireUppercase">Whether to require at least one uppercase letter.</param>
         /// <param name="requireLowercase">Whether to require at least one lowercase letter.</param>
         /// <returns>True if the password meets the complexity requirements; otherwise, false.</returns>
