@@ -9,20 +9,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        framework: [net8.0, net7.0, net6.0, netstandard2.0, net48, net47]
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup .NET
+    - name: Setup .NET ${{ matrix.framework }}
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: ${{ matrix.framework }}
 
     - name: Restore dependencies
       run: dotnet restore
 
     - name: Build
       run: dotnet build --configuration Release --no-restore
-      
+
     - name: Run tests
       run: dotnet test --no-build --configuration Release --logger "trx"
