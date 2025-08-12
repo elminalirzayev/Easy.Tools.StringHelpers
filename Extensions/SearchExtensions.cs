@@ -29,7 +29,7 @@ namespace Easy.Tools.StringHelpers.Extensions
         /// <param name="oldValue">The substring to replace.</param>
         /// <param name="newValue">The replacement string.</param>
         /// <returns>A new string with replacements applied.</returns>
-        public static string ReplaceIgnoreCase(this string source, string oldValue, string newValue)
+        public static string? ReplaceIgnoreCase(this string source, string oldValue, string newValue)
         {
             if (source == null || oldValue == null || newValue == null)
                 return source;

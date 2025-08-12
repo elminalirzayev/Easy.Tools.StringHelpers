@@ -1,4 +1,11 @@
-﻿# Easy.Tools.StringHelpers
+﻿[![Build & Test](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/build.yml/badge.svg)](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/build.yml)
+[![Build & Release](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/release.yml/badge.svg)](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/release.yml)
+[![Build & Nuget Publish](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/nuget.yml/badge.svg)](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/actions/workflows/nuget.yml)
+[![Release](https://img.shields.io/github/v/release/elminalirzayev/Easy.Tools.StringHelpers)](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/releases)
+[![License](https://img.shields.io/github/license/elminalirzayev/Easy.Tools.StringHelpers)](https://github.com/elminalirzayev/Easy.Tools.StringHelpers/blob/master/LICENSE.txt)
+[![NuGet](https://img.shields.io/nuget/v/Easy.Tools.StringHelpers.svg)](https://www.nuget.org/packages/Easy.Tools.StringHelpers)
+
+# Easy.Tools.StringHelpers
 
 A lightweight and extensible .NET library that provides a rich set of string extension methods for everyday development needs.
 
