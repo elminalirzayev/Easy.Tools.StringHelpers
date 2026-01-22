@@ -16,9 +16,9 @@ This package contains categorized string helpers for searching, formatting, vali
 ## Installation
 
 Install via NuGet:
-
+```
 dotnet add package Easy.Tools.StringHelpers
-
+```
 ---
 
 ##  Features
@@ -36,7 +36,7 @@ dotnet add package Easy.Tools.StringHelpers
 
 ## Usage
 
-
+```csharp
 using Easy.Tools.StringHelpers.Extensions;
 
 string input = "Hello World!";
@@ -52,7 +52,7 @@ string clean = "  spaced text  ".RemoveWhitespace(); // "spacedtext"
 
 // Palindrome check
 bool isPalindrome = "madam".IsPalindrome(); // true
-
+```
 
 ---
 
