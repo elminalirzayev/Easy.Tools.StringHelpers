@@ -16,7 +16,7 @@ This package contains categorized string helpers for searching, formatting, vali
 ## Installation
 
 Install via NuGet:
-```
+```bash
 dotnet add package Easy.Tools.StringHelpers
 ```
 ---
