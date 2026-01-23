@@ -87,11 +87,11 @@ namespace Easy.Tools.StringHelpers.Extensions
             return DateTime.TryParse(input, out _);
         }
 
+
+#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER
         /// <summary>
         /// Validates if the input is a valid JSON string.
         /// </summary>
-#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER
-
         /// <param name="input">The input string to validate.</param>
         /// <returns>True if the string is a valid JSON; otherwise, false.</returns>
         public static bool IsValidJson(this string input)
@@ -107,6 +107,9 @@ namespace Easy.Tools.StringHelpers.Extensions
             }
         }
 #else
+        /// <summary>
+        /// Validates if the input is a valid JSON string.
+        /// </summary>
         /// <param name="input">The input string to validate.</param>
         /// <returns>Always returns false; JSON validation not supported on this framework.</returns>
         public static bool IsValidJson(this string input)
@@ -114,6 +117,8 @@ namespace Easy.Tools.StringHelpers.Extensions
             return false;
         }
 #endif
+
+
 
         /// <summary>
         /// Validates if the input is a valid XML string.
@@ -230,8 +235,6 @@ namespace Easy.Tools.StringHelpers.Extensions
         /// <param name="minLength">Minimum length of the password.</param>
         /// <param name="requireSpecialChar">Whether to require at least one special character.</param>
         /// <param name="requireDigit">Whether to require at least one digit.</param>
-        /// <param name="requireUppercase">Whether to require at least one uppercase letter.</param>
-        /// <param name="requireLowercase">Whether to require at least one lowercase letter.</param>
         /// <param name="requireUppercase">Whether to require at least one uppercase letter.</param>
         /// <param name="requireLowercase">Whether to require at least one lowercase letter.</param>
         /// <returns>True if the password meets the complexity requirements; otherwise, false.</returns>
