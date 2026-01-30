@@ -1,88 +1,61 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace Easy.Tools.StringHelpers.Extensions
 {
     /// <summary>
-    /// Extension methods related to random string generation.
+    /// Extension methods for secure random string and password generation.
     /// </summary>
     public static class GenerationExtensions
     {
-        private static readonly Random _random = new();
+        private const string AlphanumericChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        private const string SpecialChars = "!@#$%^&*()_-+=<>?";
 
         /// <summary>
-        /// Generates a random alphanumeric string of the specified length.
+        /// Generates a random alphanumeric string of the specified length using a cryptographically secure generator.
         /// </summary>
         /// <param name="length">The length of the string to generate.</param>
-        /// <returns>A random string.</returns>
+        /// <returns>A random alphanumeric string.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown if length is less than or equal to zero.</exception>
         public static string RandomString(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            if (length <= 0)
-                return string.Empty;
-
-            var sb = new StringBuilder(length);
-            for (int i = 0; i < length; i++)
-                sb.Append(chars[_random.Next(chars.Length)]);
-            return sb.ToString();
+            if (length <= 0) throw new ArgumentOutOfRangeException(nameof(length));
+            return GenerateRandomString(length, AlphanumericChars);
         }
 
         /// <summary>
-        /// Converts the input string into a URL-friendly slug.
+        /// Generates a random string containing special characters, suitable for secure passwords.
         /// </summary>
-        /// <param name="input">The input string to convert.</param>
-        /// <returns>
-        /// A lowercase, hyphen-separated string suitable for use in URLs or filenames.
-        /// If the input is null or whitespace, returns an empty string.
-        /// </returns>
-        public static string GenerateSlug(this string input)
+        /// <param name="length">The length of the string.</param>
+        /// <returns>A random string with special characters.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if length is less than or equal to zero.</exception>
+        public static string RandomPassword(int length)
         {
-            if (string.IsNullOrWhiteSpace(input))
-                return string.Empty;
+            if (length <= 0) throw new ArgumentOutOfRangeException(nameof(length));
+            return GenerateRandomString(length, AlphanumericChars + SpecialChars);
+        }
 
-            // Normalize and remove diacritics
-            string normalized = input.Normalize(NormalizationForm.FormD);
-            var sb = new StringBuilder();
+        private static string GenerateRandomString(int length, string charSet)
+        {
+            if (length <= 0) return string.Empty;
 
-            foreach (char c in normalized)
+            var result = new char[length];
+            byte[] randomBytes = new byte[length];
+
+            // Use Cryptographic RNG for security
+            using (var rng = RandomNumberGenerator.Create())
             {
-                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-                    sb.Append(c);
+                rng.GetBytes(randomBytes);
             }
 
-            string clean = sb.ToString().Normalize(NormalizationForm.FormC);
+            for (int i = 0; i < length; i++)
+            {
+                // Modulo operation to map byte to charSet index
+                result[i] = charSet[randomBytes[i] % charSet.Length];
+            }
 
-            // Lowercase, replace spaces, remove invalid chars
-            clean = Regex.Replace(clean.ToLowerInvariant(), @"[^a-z0-9\s-]", "");
-            clean = Regex.Replace(clean, @"\s+", "-").Trim('-');
-            clean = Regex.Replace(clean, @"-+", "-");
-
-            return clean;
+            return new string(result);
         }
-
-        /// <summary>
-        /// Returns the initials (uppercase) from a full name string.
-        /// </summary>
-        /// <param name="input">The input full name string.</param>
-        /// <returns>Initials in uppercase, or empty string if input is null or empty.</returns>
-        public static string ToInitials(this string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return string.Empty;
-
-#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var words = input.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-#else
-            var words = input.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-#endif
-
-            var initials = string.Concat(words.Select(w => char.ToUpperInvariant(w[0])));
-            return initials;
-        }
-
     }
-
 }

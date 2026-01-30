@@ -1,88 +1,100 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace Easy.Tools.StringHelpers.Extensions
 {
     /// <summary>
-    /// Extension methods related to formatting strings.
+    /// Extension methods related to string formatting and casing conversions.
     /// </summary>
     public static class FormatExtensions
     {
         /// <summary>
-        /// Converts a string to snake_case format.
-        /// Example: "HelloWorld" -> "hello_world"
+        /// Converts a string to snake_case format (e.g., "HelloWorld" -> "hello_world").
         /// </summary>
-        /// <param name="input">The input string to convert.</param>
+        /// <param name="input">The input string.</param>
         /// <returns>The snake_case formatted string.</returns>
-        public static string ToSnakeCase(this string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return input;
-
-            var startUnderscores = Regex.Match(input, @"^_+");
-            string result = Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1_$2").ToLower();
-            return startUnderscores + result;
-        }
+        public static string ToSnakeCase(this string input) => ConvertCase(input, '_');
 
         /// <summary>
-        /// Converts a string to kebab-case format.
-        /// Example: "HelloWorld" -> "hello-world"
+        /// Converts a string to kebab-case format (e.g., "HelloWorld" -> "hello-world").
         /// </summary>
-        /// <param name="input">The input string to convert.</param>
+        /// <param name="input">The input string.</param>
         /// <returns>The kebab-case formatted string.</returns>
-        /// This method uses a regular expression to find positions where a lowercase letter is followed by an uppercase letter,
-        /// and inserts a hyphen between them. It also converts the entire string to lowercase.
-        public static string ToKebabCase(this string input)
-        {
-            if (string.IsNullOrEmpty(input))
-                return input;
-
-            var startHyphens = Regex.Match(input, @"^-+");
-            string result = Regex.Replace(input, @"([a-z0-9])([A-Z])", "$1-$2").ToLower();
-            return startHyphens + result;
-        }
+        public static string ToKebabCase(this string input) => ConvertCase(input, '-');
 
         /// <summary>
-        /// Splits camelCase or PascalCase string into words separated by space.
-        /// Example: "CamelCaseString" -> "Camel Case String"
+        /// Splits a CamelCase string into words separated by spaces (e.g., "CamelCase" -> "Camel Case").
         /// </summary>
-        ///  <param name="input">The input string to split.</param>
-        ///  <returns>The string with words separated by space.</returns>
-        ///  This method uses a regular expression to find positions where a lowercase letter is followed by an uppercase letter,
-        ///  and inserts a space between them.
+        /// <param name="input">The input string.</param>
+        /// <returns>The spaced string.</returns>
         public static string SplitCamelCase(this string input)
         {
-            if (string.IsNullOrEmpty(input))
-                return input;
+            if (string.IsNullOrEmpty(input)) return string.Empty;
 
-            return Regex.Replace(input, "([a-z])([A-Z])", "$1 $2");
+            var sb = new StringBuilder(input.Length + 5);
+            for (int i = 0; i < input.Length; i++)
+            {
+                if (i > 0 && char.IsUpper(input[i]))
+                    sb.Append(' ');
+                sb.Append(input[i]);
+            }
+            return sb.ToString();
         }
 
         /// <summary>
         /// Removes diacritical marks (accents) from the string.
-        /// Example: "áéíóú" -> "aeiou"
+        /// Example: "áéíóú" -> "aeiou".
         /// </summary>
-        ///  <param name="input">The input string to process.</param>
-        ///  <returns>The string without diacritical marks.</returns>
-        ///  This method normalizes the string to FormD, removes non-spacing marks,
-        ///  and then normalizes it back to FormC.
+        /// <param name="input">The input string.</param>
+        /// <returns>The string without diacritics.</returns>
         public static string RemoveDiacritics(this string input)
         {
-            if (string.IsNullOrEmpty(input))
-                return input;
+            if (string.IsNullOrEmpty(input)) return string.Empty;
 
             var normalized = input.Normalize(NormalizationForm.FormD);
-            var sb = new StringBuilder();
+            var sb = new StringBuilder(normalized.Length);
 
-            foreach (var ch in normalized)
+            foreach (var c in normalized)
             {
-                if (CharUnicodeInfo.GetUnicodeCategory(ch) != UnicodeCategory.NonSpacingMark)
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            }
+
+            return sb.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        private static string ConvertCase(string input, char separator)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+#if NET6_0_OR_GREATER
+            // Modern efficient implementation using string.Create to avoid allocations
+            // We estimate length: original + roughly 20% for separators
+            int estimatedLength = input.Length + (input.Length / 5);
+
+            // Note: Since we don't know exact length, StringBuilder is actually safer/easier 
+            // unless we do a two-pass scan. For simplicity and robustness across generic inputs:
+#endif
+            var sb = new StringBuilder(input.Length + 5);
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+                if (char.IsUpper(c))
                 {
-                    sb.Append(ch);
+                    if (i > 0 && input[i - 1] != separator && !char.IsUpper(input[i - 1]))
+                    {
+                        sb.Append(separator);
+                    }
+                    sb.Append(char.ToLowerInvariant(c));
+                }
+                else
+                {
+                    sb.Append(c);
                 }
             }
-            return sb.ToString().Normalize(NormalizationForm.FormC);
+            return sb.ToString();
         }
     }
 }

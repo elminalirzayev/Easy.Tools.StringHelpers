@@ -1,7 +1,10 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using System.Linq;
 using System.Xml;
+
 #if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER 
 using System.Text.Json;
 #endif
@@ -9,128 +12,148 @@ using System.Text.Json;
 namespace Easy.Tools.StringHelpers.Extensions
 {
     /// <summary>
-    /// Extension methods related to validation.
+    /// Extension methods related to string validation (Email, URL, JSON, Credit Card, etc.).
     /// </summary>
     public static class ValidationExtensions
     {
+        // Pre-compiled regex patterns with timeouts for ReDoS protection
+        private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(2);
+
+        private static readonly Regex _emailRegex = new Regex(
+            @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
+
+        private static readonly Regex _urlRegex = new Regex(
+            @"^(http|https):\/\/[^\s$.?#].[^\s]*$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase, RegexTimeout);
+
+        private static readonly Regex _hexColorRegex = new Regex(
+            @"^#(?:[0-9a-fA-F]{3}){1,2}$",
+            RegexOptions.Compiled, RegexTimeout);
+
+        private static readonly Regex _phoneRegex = new Regex(
+            @"^\+?\d{7,15}$",
+            RegexOptions.Compiled, RegexTimeout);
+
         /// <summary>
-        /// Checks if a string is a palindrome (ignores case and whitespace).
+        /// Checks if a string is a palindrome (reads the same forwards and backwards).
+        /// Ignores case and non-alphanumeric characters.
         /// </summary>
         /// <param name="input">The input string to check.</param>
-        /// <returns>True if the string is a palindrome; otherwise, false.</returns>
+        /// <returns><c>true</c> if the string is a palindrome; otherwise, <c>false</c>.</returns>
         public static bool IsPalindrome(this string input)
         {
-            if (string.IsNullOrEmpty(input))
-                return false;
+            if (string.IsNullOrWhiteSpace(input)) return false;
 
-            var cleaned = Regex.Replace(input.ToLower(), @"\s+", "");
-            int len = cleaned.Length;
+            int min = 0;
+            int max = input.Length - 1;
 
-            for (int i = 0; i < len / 2; i++)
+            while (min < max)
             {
-                if (cleaned[i] != cleaned[len - i - 1])
-                    return false;
-            }
+                char a = input[min];
+                char b = input[max];
 
+                // Skip non-alphanumeric characters
+                if (!char.IsLetterOrDigit(a)) { min++; continue; }
+                if (!char.IsLetterOrDigit(b)) { max--; continue; }
+
+                if (char.ToLowerInvariant(a) != char.ToLowerInvariant(b)) return false;
+
+                min++;
+                max--;
+            }
             return true;
         }
 
         /// <summary>
-        /// Validates if the input is a properly formatted email.
+        /// Validates if the input is a properly formatted email address.
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid email; otherwise, false.</returns>
-        /// This method uses the MailAddress class to attempt to create a new email address object.
-        /// If the input is not a valid email format, it will throw an exception, which we catch to return false.
+        /// <returns><c>true</c> if the string is a valid email format; otherwise, <c>false</c>.</returns>
         public static bool IsValidEmail(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return false;
             try
             {
-                _ = new MailAddress(input);
-                return true;
+                return _emailRegex.IsMatch(input);
             }
-            catch
+            catch (RegexMatchTimeoutException)
             {
                 return false;
             }
         }
 
         /// <summary>
-        /// Validates if the input is a valid URL.
+        /// Validates if the input is a valid absolute URL (HTTP or HTTPS).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid URL; otherwise, false.</returns>
-        /// This method uses the Uri.TryCreate method to check if the input can be parsed as a valid absolute URL.
+        /// <returns><c>true</c> if the string is a valid URL; otherwise, <c>false</c>.</returns>
         public static bool IsValidUrl(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return false;
             return Uri.TryCreate(input, UriKind.Absolute, out var uriResult)
                 && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         }
 
         /// <summary>
-        /// Validates if the input is a valid GUID.
+        /// Validates if the input is a valid GUID (Globally Unique Identifier).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid GUID; otherwise, false.</returns>
-        public static bool IsValidGuid(this string input)
-        {
-            return Guid.TryParse(input, out _);
-        }
+        /// <returns><c>true</c> if the string is a valid GUID; otherwise, <c>false</c>.</returns>
+        public static bool IsValidGuid(this string input) => Guid.TryParse(input, out _);
 
         /// <summary>
-        /// Validates if the input is a valid date.
+        /// Validates if the input string can be parsed as a valid DateTime.
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string can be parsed as a date; otherwise, false.</returns>
-        public static bool IsValidDate(this string input)
-        {
-            return DateTime.TryParse(input, out _);
-        }
+        /// <returns><c>true</c> if the string is a valid date; otherwise, <c>false</c>.</returns>
+        public static bool IsValidDate(this string input) => DateTime.TryParse(input, out _);
 
-
-#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER
         /// <summary>
         /// Validates if the input is a valid JSON string.
+        /// Checks for valid structure ({...} or [...]).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid JSON; otherwise, false.</returns>
+        /// <returns><c>true</c> if the string is valid JSON; otherwise, <c>false</c>.</returns>
         public static bool IsValidJson(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return false;
+            var trimmed = input.Trim();
+
+            // Fast fail check
+            if (!(trimmed.StartsWith("{") && trimmed.EndsWith("}")) &&
+                !(trimmed.StartsWith("[") && trimmed.EndsWith("]"))) return false;
+
+#if NET6_0_OR_GREATER
             try
             {
-                JsonDocument.Parse(input);
+                JsonDocument.Parse(trimmed);
                 return true;
             }
             catch
             {
                 return false;
             }
-        }
 #else
-        /// <summary>
-        /// Validates if the input is a valid JSON string.
-        /// </summary>
-        /// <param name="input">The input string to validate.</param>
-        /// <returns>Always returns false; JSON validation not supported on this framework.</returns>
-        public static bool IsValidJson(this string input)
-        {
-            return false;
-        }
+            // JSON validation is complex in legacy without external libraries like Newtonsoft.
+            // Returning false to be safe/consistent, or implement a basic stack-based checker if strictly needed.
+            return false; 
 #endif
-
-
+        }
 
         /// <summary>
         /// Validates if the input is a valid XML string.
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid XML; otherwise, false.</returns>
+        /// <returns><c>true</c> if the string is valid XML; otherwise, <c>false</c>.</returns>
         public static bool IsValidXml(this string input)
         {
+            if (string.IsNullOrWhiteSpace(input)) return false;
             try
             {
-                var doc = new XmlDocument();
-                doc.LoadXml(input);
+                var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
+                using var reader = XmlReader.Create(new System.IO.StringReader(input), settings);
+                while (reader.Read()) { }
                 return true;
             }
             catch
@@ -140,24 +163,23 @@ namespace Easy.Tools.StringHelpers.Extensions
         }
 
         /// <summary>
-        /// Validates if the input is a valid Base64 string.
+        /// Validates if the input is a valid Base64 encoded string.
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid Base64; otherwise, false.</returns>
+        /// <returns><c>true</c> if the string is valid Base64; otherwise, <c>false</c>.</returns>
         public static bool IsValidBase64(this string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return false;
-
-#if NET8_0_OR_GREATER || NET7_0_OR_GREATER || NET6_0_OR_GREATER 
-            Span<byte> buffer = new byte[input.Length];
-            return System.Convert.TryFromBase64String(input, buffer, out _);
-#else
             input = input.Trim();
-            if (input.Length % 4 != 0)
-                return false;
+            if (input.Length % 4 != 0) return false;
+
+#if NET6_0_OR_GREATER
+            Span<byte> buffer = new byte[input.Length];
+            return Convert.TryFromBase64String(input, buffer, out _);
+#else
             try
             {
-                System.Convert.FromBase64String(input);
+                Convert.FromBase64String(input);
                 return true;
             }
             catch
@@ -165,35 +187,35 @@ namespace Easy.Tools.StringHelpers.Extensions
                 return false;
             }
 #endif
-
         }
 
         /// <summary>
-        /// Validates if the input is a valid IP address.
+        /// Validates if the input is a valid IP address (IPv4 or IPv6).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid IP address; otherwise, false.</returns>
-        public static bool IsValidIpAddress(this string input)
-        {
-            return IPAddress.TryParse(input, out _);
-        }
+        /// <returns><c>true</c> if the string is a valid IP address; otherwise, <c>false</c>.</returns>
+        public static bool IsValidIpAddress(this string input) => IPAddress.TryParse(input, out _);
 
         /// <summary>
-        /// Validates if the input is a valid credit card number (Luhn algorithm).
+        /// Validates if the input is a valid credit card number using the Luhn algorithm.
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid credit card number; otherwise, false.</returns>
+        /// <returns><c>true</c> if the string is a valid credit card number; otherwise, <c>false</c>.</returns>
         public static bool IsValidCreditCard(this string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return false;
 
-            var digits = Regex.Replace(input, @"[^\d]", "");
             int sum = 0;
             bool alternate = false;
 
-            for (int i = digits.Length - 1; i >= 0; i--)
+            for (int i = input.Length - 1; i >= 0; i--)
             {
-                int n = int.Parse(digits[i].ToString());
+                char c = input[i];
+
+                if (char.IsWhiteSpace(c) || c == '-') continue;
+                if (!char.IsDigit(c)) return false;
+
+                int n = c - '0';
 
                 if (alternate)
                 {
@@ -205,43 +227,38 @@ namespace Easy.Tools.StringHelpers.Extensions
                 alternate = !alternate;
             }
 
-            return sum % 10 == 0;
+            return sum > 0 && sum % 10 == 0;
         }
 
         /// <summary>
-        /// Validates if the input is a valid hex color (e.g., #FFF, #FFFFFF).
+        /// Validates if the input is a valid Hex Color code (e.g., #FFF or #FFFFFF).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid hex color; otherwise, false.</returns>
-        public static bool IsValidHexColor(this string input)
-        {
-            return Regex.IsMatch(input, @"^#(?:[0-9a-fA-F]{3}){1,2}$");
-        }
+        /// <returns><c>true</c> if the string is a valid hex color; otherwise, <c>false</c>.</returns>
+        public static bool IsValidHexColor(this string input) =>
+            !string.IsNullOrEmpty(input) && _hexColorRegex.IsMatch(input);
 
         /// <summary>
-        /// Validates if the input is a valid phone number (basic check).
+        /// Validates if the input is a valid phone number (basic international format check).
         /// </summary>
         /// <param name="input">The input string to validate.</param>
-        /// <returns>True if the string is a valid phone number; otherwise, false.</returns>
-        public static bool IsValidPhoneNumber(this string input)
-        {
-            return Regex.IsMatch(input, @"^\+?\d{7,15}$");
-        }
+        /// <returns><c>true</c> if the string is a valid phone number; otherwise, <c>false</c>.</returns>
+        public static bool IsValidPhoneNumber(this string input) =>
+            !string.IsNullOrEmpty(input) && _phoneRegex.IsMatch(input);
 
         /// <summary>
-        /// Validates password based on given complexity requirements.
+        /// Validates if the password meets specified complexity requirements.
         /// </summary>
-        /// <param name="input">The input string to validate as a password.</param>
-        /// <param name="minLength">Minimum length of the password.</param>
-        /// <param name="requireSpecialChar">Whether to require at least one special character.</param>
-        /// <param name="requireDigit">Whether to require at least one digit.</param>
-        /// <param name="requireUppercase">Whether to require at least one uppercase letter.</param>
-        /// <param name="requireLowercase">Whether to require at least one lowercase letter.</param>
-        /// <returns>True if the password meets the complexity requirements; otherwise, false.</returns>
+        /// <param name="input">The password string to validate.</param>
+        /// <param name="minLength">Minimum required length (default: 8).</param>
+        /// <param name="requireSpecialChar">Require at least one special character (default: false).</param>
+        /// <param name="requireDigit">Require at least one numeric digit (default: false).</param>
+        /// <param name="requireUppercase">Require at least one uppercase letter (default: false).</param>
+        /// <param name="requireLowercase">Require at least one lowercase letter (default: false).</param>
+        /// <returns><c>true</c> if the password meets all criteria; otherwise, <c>false</c>.</returns>
         public static bool IsValidPassword(this string input, int minLength = 8, bool requireSpecialChar = false, bool requireDigit = false, bool requireUppercase = false, bool requireLowercase = false)
         {
-            if (string.IsNullOrEmpty(input) || input.Length < minLength)
-                return false;
+            if (string.IsNullOrEmpty(input) || input.Length < minLength) return false;
 
             if (requireDigit && !input.Any(char.IsDigit)) return false;
             if (requireUppercase && !input.Any(char.IsUpper)) return false;
@@ -252,15 +269,22 @@ namespace Easy.Tools.StringHelpers.Extensions
         }
 
         /// <summary>
-        /// Validates if the input is a valid username with length constraints.
+        /// Validates if the input is a valid username.
+        /// Allows alphanumeric characters, underscores, hyphens, and dots.
         /// </summary>
-        /// <param name="input">The input string to validate as a username.</param>
-        /// <param name="minLength">Minimum length of the username.</param>
-        /// <param name="maxLength">Maximum length of the username.</param>
-        /// <returns>True if the username meets the length constraints and contains only valid characters; otherwise, false.</returns>
+        /// <param name="input">The username string to validate.</param>
+        /// <param name="minLength">Minimum allowed length (default: 3).</param>
+        /// <param name="maxLength">Maximum allowed length (default: 20).</param>
+        /// <returns><c>true</c> if the username is valid; otherwise, <c>false</c>.</returns>
         public static bool IsValidUsername(this string input, int minLength = 3, int maxLength = 20)
         {
-            return Regex.IsMatch(input, $"^[a-zA-Z0-9_.-]{{{minLength},{maxLength}}}$");
+            if (string.IsNullOrEmpty(input) || input.Length < minLength || input.Length > maxLength) return false;
+
+            foreach (char c in input)
+            {
+                if (!char.IsLetterOrDigit(c) && c != '_' && c != '-' && c != '.') return false;
+            }
+            return true;
         }
     }
 }

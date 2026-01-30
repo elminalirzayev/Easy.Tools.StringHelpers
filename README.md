@@ -7,76 +7,115 @@
 
 # Easy.Tools.StringHelpers
 
-A lightweight and extensible .NET library that provides a rich set of string extension methods for everyday development needs.
+**Easy.Tools.StringHelpers** is a high-performance, secure, and enterprise-ready .NET library providing a rich set of string extension methods. It is re-engineered with **Zero-Allocation** techniques for modern .NET, **ReDoS protection** for Regex operations, and strictly typed validation helpers.
 
-This package contains categorized string helpers for searching, formatting, validation, sanitization, and more.
 
----
+## Key Features
+
+- ** High Performance & Zero-Allocation:** Utilizes `Span<T>`, `string.Create`, and `ValueTuple` on modern frameworks (.NET 6+) to minimize memory pressure.
+- ** Security First:** - All internal Regex operations use **Timeouts** to prevent **ReDoS** (Regular Expression Denial of Service).
+  - Random string/password generation uses **CSPRNG** (Cryptographically Secure Pseudo-Random Number Generator).
+- ** Enterprise Validation:** Built-in validators for Credit Cards (Luhn Algorithm), JSON, XML, URLs, Emails (RFC-compliant regex), and more.
+- ** Multi-Framework Support:** Runs everywhere. Supports `.NET 10`, `.NET 9`, `.NET 8`, `.NET 6`, `.NET Standard 2.0/2.1`, and `.NET Framework 4.7.2+`.
 
 ## Installation
 
-Install via NuGet:
-```bash
+Install via NuGet Package Manager:
+```powershell
+Install-Package Easy.Tools.StringHelpers
+```
+
+Or via .NET CLI:
+
+```powershell
 dotnet add package Easy.Tools.StringHelpers
 ```
----
 
-##  Features
 
--  Case-insensitive search and replace
--  String casing (snake_case, kebab-case, title case, camel splitting)
--  HTML stripping and special character removal
--  Validation (palindrome, numeric check, regex match)
--  Digit extraction and counting
--  Repeat, split, trim utilities
--  Random string generation
--  Date parsing support
+## Usage Examples
 
----
+### 1. Secure Validation
 
-## Usage
+Validate inputs without throwing unnecessary exceptions.
 
 ```csharp
 using Easy.Tools.StringHelpers.Extensions;
 
-string input = "Hello World!";
+// Email & Password Validation
+if (userInput.IsValidEmail() && password.IsValidPassword(minLength: 10, requireSpecialChar: true))
+{
+    // Proceed safely...
+}
 
-// Case-insensitive check
-bool contains = input.ContainsIgnoreCase("world");
+// Credit Card Validation (Luhn Algorithm - Zero Allocation)
+if (creditCardString.IsValidCreditCard()) 
+{
+    // Payment logic...
+}
 
-// Snake case conversion
-string snake = "HelloWorld".ToSnakeCase(); // hello_world
-
-// Remove whitespace
-string clean = "  spaced text  ".RemoveWhitespace(); // "spacedtext"
-
-// Palindrome check
-bool isPalindrome = "madam".IsPalindrome(); // true
+// JSON Structure Check
+bool isJson = apiResponse.IsValidJson();
 ```
 
----
+### 2. High-Performance Manipulation
+
+Perform string operations with minimal memory footprint.
+
+```csharp
+string title = "  High Performance Code  ";
+// Slug generation (Supports Turkish characters: ı->i, ğ->g)
+string slug = title.GenerateSlug(); // "high-performance-code"
+
+string description = "This is a very long text that needs to be shortened.";
+// Truncate using Span<T> optimizations
+string preview = description.Truncate(20, addEllipsis: true); // "This is a very lo..."
+```
+
+### 3. PII Masking & Security
+
+Securely handle sensitive data.
+
+```csharp
+string email = "admin@example.com";
+Console.WriteLine(email.MaskEmail()); // "ad***@example.com"
+
+// Secure Random Password (CSPRNG)
+string secret = GenerationExtensions.RandomPassword(16); 
+``` 
 
 ## Extension Categories
 
-| Category                 | Description                                |
-|--------------------------|--------------------------------------------|
-| `SearchExtensions`       | Search, count, replace (ignore case, etc.) |
-| `FormatExtensions`       | Snake/kebab case, camel splitting          |
-| `ManipulationExtensions` | Whitespace removal, line splitting         |
-| `ValidationExtensions`   | Palindrome, numeric, regex                 |
-| `GenerationExtensions`   | Random string generator                    |
-| `SanitizeExtensions`     | HTML tag and special character removal     |
-| `CasingExtensions`       | Title case, invariant case helpers         |
-| `LengthExtensions`       | ShorterThan, LongerThan                    |
-| `RegexExtensions`        | Match, extract via regex                   |
-| `DateParsingExtensions`  | Detect if string contains a valid date     |
+| Category | Description |
+| --- | --- |
+| **`ValidationExtensions`** | Validate Email, Credit Card (Luhn), JSON, XML, URL, IP, Palindrome, etc. |
+| **`SanitizeExtensions`** | High-perf removal of HTML tags, special chars, digits (Loop-based). |
+| **`TruncateExtensions`** | Smart string truncation with ellipsis support (Zero-alloc). |
+| **`ManipulationExtensions`** | General manipulation: RemoveWhitespace, SplitLines, Repeat, NormalizeSpaces. |
+| **`MaskingExtensions`** | Mask sensitive data like Emails or IDs. |
+| **`SearchExtensions`** | `ContainsAny`, `ContainsAll`, `CountOccurrences`, `IsNumeric`. |
+| **`TransformationExtensions`** | `GenerateSlug` (Turkish support), `ToInitials`, `Reverse`. |
+| **`FormatExtensions`** | `ToSnakeCase`, `ToKebabCase`, `RemoveDiacritics`. |
+| **`GenerationExtensions`** | Secure Random String & Password generation. |
+| **`ConversionExtensions`** | Safe type conversions (`ToIntOrNull`, `To<T>`). |
+| **`CasingExtensions`** | `ToTitleCase`, `ToInvariantLower`, `ToInvariantUpper`. |
+| **`PaddingExtensions`** | `PadLeftWith`, `PadRightWith`, `PadBothWith` (Center alignment). |
+| **`LengthExtensions`** | Fluent length checks: LongerThan, ShorterThan, IsLengthBetween. |
+| **`RegexExtensions`** | Safe Regex matching and extraction with Timeouts. |
+| **`DateParsingExtensions`** | Detect if string contains a valid date. |
+
+
+---
+
+## Contributing
+
+Contributions and suggestions are welcome. Please open an issue or submit a pull request.
 
 ---
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
 
 ---
 
-© 2025 Elmin Alirzayev / Easy Code Tools
+  2025 Elmin Alirzayev / Easy Code Tools

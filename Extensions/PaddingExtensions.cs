@@ -1,104 +1,103 @@
-﻿namespace Easy.Tools.StringHelpers.Extensions
+﻿using System;
+
+namespace Easy.Tools.StringHelpers.Extensions
 {
     /// <summary>
-    /// Extension methods for string padding.
+    /// Extension methods for string padding operations.
     /// </summary>
     public static class PaddingExtensions
     {
         /// <summary>
         /// Pads the string on the left with the specified character until it reaches the total width.
         /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width of the resulting string after padding.</param>
-        /// <param name="paddingChar">The character to use for padding.</param>
-        /// <returns>A new string padded on the left, or empty string if input is null.</returns>
+        /// <param name="input">The input string.</param>
+        /// <param name="totalWidth">Total width required.</param>
+        /// <param name="paddingChar">Char to use for padding.</param>
+        /// <returns>Padded string.</returns>
         public static string PadLeftWith(this string input, int totalWidth, char paddingChar) =>
             input?.PadLeft(totalWidth, paddingChar) ?? string.Empty;
 
         /// <summary>
         /// Pads the string on the right with the specified character until it reaches the total width.
         /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width of the resulting string after padding.</param>
-        /// <param name="paddingChar">The character to use for padding.</param>
-        /// <returns>A new string padded on the right, or empty string if input is null.</returns>
+        /// <param name="input">The input string.</param>
+        /// <param name="totalWidth">Total width required.</param>
+        /// <param name="paddingChar">Char to use for padding.</param>
+        /// <returns>Padded string.</returns>
         public static string PadRightWith(this string input, int totalWidth, char paddingChar) =>
             input?.PadRight(totalWidth, paddingChar) ?? string.Empty;
 
         /// <summary>
-        /// Pads the string on both sides with the specified character until it reaches the total width.
+        /// Pads the string on both sides (center alignment) with the specified character.
         /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width of the resulting string after padding.</param>
-        /// <param name="paddingChar">The character to use for padding.</param>
-        /// <returns>A new string padded on both sides, or empty string if input is null.</returns>
+        /// <param name="input">The input string.</param>
+        /// <param name="totalWidth">Total width required.</param>
+        /// <param name="paddingChar">Char to use for padding.</param>
+        /// <returns>Centered and padded string.</returns>
         public static string PadBothWith(this string input, int totalWidth, char paddingChar)
         {
-            if (string.IsNullOrEmpty(input))
-                return string.Empty;
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            if (input.Length >= totalWidth) return input;
 
-            int spaces = totalWidth - input.Length;
-            if (spaces <= 0)
-                return input;
+            int padTotal = totalWidth - input.Length;
+            int padLeft = padTotal / 2;
+            int padRight = padTotal - padLeft;
 
-            int padLeft = spaces / 2;
-            int padRight = spaces - padLeft;
-
-            return new string(paddingChar, padLeft) + input + new string(paddingChar, padRight);
+#if NET6_0_OR_GREATER
+            // Zero-allocation implementation for modern .NET
+            return string.Create(totalWidth, (input, paddingChar, padLeft, padRight), (span, state) =>
+            {
+                var (str, pChar, left, right) = state;
+                span.Slice(0, left).Fill(pChar);
+                str.AsSpan().CopyTo(span.Slice(left));
+                span.Slice(left + str.Length).Fill(pChar);
+            });
+#else
+            // Fallback for legacy .NET
+            var result = new char[totalWidth];
+            for (int i = 0; i < padLeft; i++) result[i] = paddingChar;
+            input.CopyTo(0, result, padLeft, input.Length);
+            for (int i = padLeft + input.Length; i < totalWidth; i++) result[i] = paddingChar;
+            return new string(result);
+#endif
         }
 
-        /// <summary>
-        /// Pads the string on the left with zeros until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on the left with zeros.</returns>
-        public static string PadLeftWithZeros(this string input, int totalWidth) =>
-            input?.PadLeft(totalWidth, '0') ?? string.Empty;
+        // --- Convenience Methods ---
 
-        /// <summary>
-        /// Pads the string on the right with zeros until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on the right with zeros.</returns>
-        public static string PadRightWithZeros(this string input, int totalWidth) =>
-            input?.PadRight(totalWidth, '0') ?? string.Empty;
+        /// <summary>Pads left with zeros.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadLeftWithZeros(this string input, int totalWidth) => PadLeftWith(input, totalWidth, '0');
 
-        /// <summary>
-        /// Pads the string on both sides with zeros until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on both sides with zeros.</returns>
-        public static string PadBothWithZeros(this string input, int totalWidth) =>
-            PadBothWith(input, totalWidth, '0');
+        /// <summary>Pads right with zeros.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadRightWithZeros(this string input, int totalWidth) => PadRightWith(input, totalWidth, '0');
 
-        /// <summary>
-        /// Pads the string on the left with spaces until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on the left with spaces.</returns>
-        public static string PadLeftWithSpaces(this string input, int totalWidth) =>
-            input?.PadLeft(totalWidth, ' ') ?? string.Empty;
+        /// <summary>Pads both sides with zeros.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadBothWithZeros(this string input, int totalWidth) => PadBothWith(input, totalWidth, '0');
 
-        /// <summary>
-        /// Pads the string on the right with spaces until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on the right with spaces.</returns>
-        public static string PadRightWithSpaces(this string input, int totalWidth) =>
-            input?.PadRight(totalWidth, ' ') ?? string.Empty;
+        /// <summary>Pads left with spaces.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadLeftWithSpaces(this string input, int totalWidth) => PadLeftWith(input, totalWidth, ' ');
 
-        /// <summary>
-        /// Pads the string on both sides with spaces until it reaches the total width.
-        /// </summary>
-        /// <param name="input">The input string to pad.</param>
-        /// <param name="totalWidth">The total width after padding.</param>
-        /// <returns>A new string padded on both sides with spaces.</returns>
-        public static string PadBothWithSpaces(this string input, int totalWidth) =>
-            PadBothWith(input, totalWidth, ' ');
+        /// <summary>Pads right with spaces.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadRightWithSpaces(this string input, int totalWidth) => PadRightWith(input, totalWidth, ' ');
+
+        /// <summary>Pads both sides with spaces.</summary>
+        /// <param name="input">Input string.</param>
+        /// <param name="totalWidth">Target width.</param>
+        /// <returns>Padded string.</returns>
+        public static string PadBothWithSpaces(this string input, int totalWidth) => PadBothWith(input, totalWidth, ' ');
     }
 }
